@@ -11,10 +11,13 @@ LOCATION = qs.get('r', [""])[0]
 
 CSVFILE = "TS060-2021-1.csv"
 df = pandas.read_csv(CSVFILE)
-df = df.sort_values("Observation", ascending=False)
+df.set_index("Industry (current) (88 categories)", inplace=True)
 
-if LOCATION not in set(df["Lower Tier Local Authorities"]):
-  # print("HTTP/1.0 400 Bad Request")
+if LOCATION == "ALL":
+  localdf = df.groupby(df.index).agg({"Observation": "sum", 'Industry (current) (88 categories) Code': "min"})
+elif LOCATION in set(df["Lower Tier Local Authorities"]):
+  localdf = df[df["Lower Tier Local Authorities"] == LOCATION]
+else:
   print("Status:400")
   print()
   print(f"<{LOCATION}> is not in the list of locations.")
@@ -27,13 +30,14 @@ if LOCATION not in set(df["Lower Tier Local Authorities"]):
     print(loc)
   sys.exit(1)
 
-localdf = df[df["Lower Tier Local Authorities"] == LOCATION]
+localdf = localdf.sort_values("Observation", ascending=False)
 
 print("Content-type: text/html")
 print()
 print(f"""<!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
 h1 {{
   text-align: center;
@@ -55,15 +59,15 @@ table td {{
       Industry (current) (88 categories)
     </th>
     <th>
-      Observation (I think number of people)
+      Observation (I think number of people), total={localdf["Observation"].sum():,}
     </th>
   </tr>
 """)
 
 for key, row in localdf.iterrows():
   print("<tr>")
-  print(f'<td>{row["Industry (current) (88 categories)"]}')
-  print(f'<td>{row["Observation"]}')
+  print(f'<td>{key}')
+  print(f'<td>{row["Observation"]:,}')
   print("</tr>")
 
 print("""

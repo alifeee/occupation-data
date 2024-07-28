@@ -20,8 +20,11 @@ LOCATION = qs.get('r', [""])[0]
 df = pandas.read_csv(CSVFILE)
 df.set_index('Industry (current) (88 categories)', inplace=True)
 
-if LOCATION not in set(df["Lower Tier Local Authorities"]):
-  # print("HTTP/1.0 400 Bad Request")
+if LOCATION == "ALL":
+  localdf = df.groupby(df.index).agg({"Observation": "sum", 'Industry (current) (88 categories) Code': "min"})
+elif LOCATION in set(df["Lower Tier Local Authorities"]):
+  localdf = df[df["Lower Tier Local Authorities"] == LOCATION]
+else:
   print("Status:400")
   print()
   print(f"<{LOCATION}> is not in the list of locations.")
@@ -34,7 +37,6 @@ if LOCATION not in set(df["Lower Tier Local Authorities"]):
     print(loc)
   sys.exit(1)
 
-localdf = df[df["Lower Tier Local Authorities"] == LOCATION]
 DNA_number = localdf["Observation"]["Does not apply"]
 # drop DOES NOT APPLY
 localdf = localdf.drop("Does not apply")
@@ -49,7 +51,7 @@ def combine_other(row):
 
 localdf.loc[:, 'combined_label'] = localdf.apply(combine_other, axis=1)
 
-pdf = localdf.groupby('combined_label').sum(numeric_only=True)
+pdf = localdf.groupby(['combined_label']).sum(numeric_only=True)
 
 prop_cycle = plt.rcParams['axes.prop_cycle']
 colours = list(matplotlib.colors.cnames.items())
@@ -94,9 +96,9 @@ ax2.pie(
     pctdistance=0,
 )
 
-ax.set_title(f"Industry and Occupation data for {LOCATION}\nFrom Census 2021 Data")
-ax2.set_title(f'Total \"Does not apply\": {DNA_number} people')
-plt.suptitle(f"Total with data: {total_applies} people")
+ax.set_title(f"Industry and Occupation data for {LOCATION} (total {DNA_number + total_applies:,})\nFrom Census 2021 Data")
+ax2.set_title(f'Total \"Does not apply\": {DNA_number:,} people')
+plt.suptitle(f"Total with data: {total_applies:,} people")
 
 plt.figtext(
   0.5,

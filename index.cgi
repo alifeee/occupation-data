@@ -14,6 +14,7 @@ print()
 print(f"""<!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
 body {{
   display: flex;
@@ -37,7 +38,7 @@ body {{
 <form action="/occupation-data/pie.cgi">
 <label for="r">Authority</label>
 <select id="r" name="r">
-<option value="Choose..." selected>Choose...</option>
+<option value="ALL" selected>ALL</option>
 {"".join(f"<option value='{a}'>{a}</option>" for a in authorities)}
 </select>
 <button type="Submit">See graph</button>
@@ -48,7 +49,7 @@ body {{
 <form action="/occupation-data/list.cgi">
 <label for="r">Authority</label>
 <select id="r" name="r">
-<option value="Choose..." selected>Choose...</option>
+<option value="ALL" selected>ALL</option>
 {"".join(f"<option value='{a}'>{a}</option>" for a in authorities)}
 </select>
 <button type="Submit">See entire list</button>
