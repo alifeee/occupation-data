@@ -12,9 +12,14 @@ from urllib.parse import urlparse, parse_qs
 
 CSVFILE = "TS060-2021-1.csv"
 
-qs = parse_qs(os.environ["QUERY_STRING"])
+# list of random (but consistent) colours
+prop_cycle = plt.rcParams['axes.prop_cycle']
+colours = list(matplotlib.colors.cnames.items())
+random.seed(1285971)
+random.shuffle(colours)
 
 # get location from query string, i.e., "?r=Sheffield"
+qs = parse_qs(os.environ["QUERY_STRING"])
 LOCATION = qs.get('r', [""])[0]
 
 df = pandas.read_csv(CSVFILE)
@@ -37,57 +42,62 @@ else:
     print(loc)
   sys.exit(1)
 
-DNA_number = localdf["Observation"]["Does not apply"]
 # drop DOES NOT APPLY
+DNA_number = localdf["Observation"]["Does not apply"]
 localdf = localdf.drop("Does not apply")
-total_applies = localdf["Observation"].sum()
 
-SOME_THRESHOLD = total_applies / 100
+# add colours
+localdf["colour"] = [colours[i][1] for i in localdf["Industry (current) (88 categories) Code"]]
+localdf
 
-def combine_other(row):
-    if row["Observation"] < SOME_THRESHOLD:
-        return 'Other'
-    return row.name
+# split by total
+total = localdf["Observation"].sum()
+THRESHOLD_1 = total * (1 / 100) # 1.00%
+THRESHOLD_2 = total * (0.15 / 100) # 0.15%
 
-localdf.loc[:, 'combined_label'] = localdf.apply(combine_other, axis=1)
+other_colour = "#777777"
 
-pdf = localdf.groupby(['combined_label']).sum(numeric_only=True)
+otherdf1 = localdf[localdf["Observation"] < THRESHOLD_1]
+otherdf2 = localdf[localdf["Observation"] < THRESHOLD_2]
 
-prop_cycle = plt.rcParams['axes.prop_cycle']
-colours = list(matplotlib.colors.cnames.items())
-random.seed(21412562)
-random.shuffle(colours)
-colours = colours[:-1]
+# make them go away, i.e., remove things from "Other" from main df (and add to "Other" index)
+localdf = pandas.concat([localdf, otherdf1]).drop_duplicates(keep=False)
+localdf.loc["Other"] = {"Observation": otherdf1["Observation"].sum(), "colour": other_colour}
+otherdf1 = pandas.concat([otherdf1, otherdf2]).drop_duplicates(keep=False)
+otherdf1.loc["Other"] = {"Observation": otherdf2["Observation"].sum(), "colour": other_colour}
 
-
-pdf = pdf.sort_values(by="Observation")
-
-fig = plt.figure(figsize=(10, 20))
-ax, ax2 = fig.subplots(2, 1)
+fig = plt.figure(figsize=(10, 30))
+ax, axo1, ax2 = fig.subplots(3, 1)
 fig.tight_layout()
 
-obscolours = []
-for i in pdf["Industry (current) (88 categories) Code"]:
-    if i > len(colours):
-        c = colours[0][1]
-    else:
-        c = colours[i % len(colours)][1]
-    obscolours.append(c)
-
+localdf = localdf.sort_values(by="Observation")
 ax.pie(
-    pdf["Observation"],
-    labels=[f"{ind if ind != 'Other' else 'Other (<1%)'} - {pdf['Observation'][ind]:,}" for ind in pdf.index],
+    localdf["Observation"],
+    labels=[f"{ind if ind != 'Other' else 'Other (<1%)'} - {localdf['Observation'][ind]:,}" for ind in localdf.index],
     autopct='%.1f%%',
-    colors=obscolours,
-    explode=[0.05 if b == "Other" else 0 for b in pdf.index],
+    colors=localdf["colour"],
+    explode=[0.05 if b == "Other" else 0 for b in localdf.index],
     pctdistance=0.8,
     labeldistance=1.05,
     startangle=-60,
     radius=1,
 )
 
-ratio = DNA_number / total_applies
+otherdf1 = otherdf1.sort_values(by="Observation")
+other1total = otherdf1["Observation"].sum()
+axo1.pie(
+    otherdf1["Observation"],
+    labels=[f"{ind if ind != 'Other' else 'Other (<0.15%)'} - {otherdf1['Observation'][ind]:,}" for ind in otherdf1.index],
+    autopct=lambda pct: f"{pct * other1total / total:.2}%",
+    colors=otherdf1["colour"],
+    explode=[0.05 if b == "Other" else 0 for b in otherdf1.index],
+    pctdistance=0.8,
+    labeldistance=1.05,
+    startangle=-60,
+    radius=1,
+)
 
+ratio = DNA_number / total
 ax2.pie(
     [DNA_number],
     labels=["Does not apply"],
@@ -96,9 +106,10 @@ ax2.pie(
     pctdistance=0,
 )
 
-ax.set_title(f"Industry and Occupation data for {LOCATION} (total {DNA_number + total_applies:,})\nFrom Census 2021 Data")
+ax.set_title(f"Industry and Occupation data for {LOCATION} (total {DNA_number + total:,})\nFrom Census 2021 Data")
 ax2.set_title(f'Total \"Does not apply\": {DNA_number:,} people')
-plt.suptitle(f"Total with data: {total_applies:,} people")
+axo1.set_title(f'Total in "Other" category: {other1total:,}')
+plt.suptitle(f"Total with data: {total:,} people")
 
 plt.figtext(
   0.5,
