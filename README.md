@@ -2,7 +2,7 @@
 
 Plotting Industry and occupation data from the ONS 2021 census.
 
-See example on <http://server.alifeee.co.uk/occupation-data/region.cgi?r=Sheffield> or in [`plot.ipynb`](./plot.ipynb)
+See example on <http://server.alifeee.co.uk/occupation-data/choice.cgi> or in [`plot.ipynb`](./plot.ipynb)
 
 Dataset: <https://www.ons.gov.uk/datasets/TS060/editions/2021/versions/1>
 
