@@ -44,6 +44,7 @@ Add the following to nginx config
 
 ```nginx
                 location /occupation-data/ {
+			fastcgi_index index.cgi;
                         fastcgi_intercept_errors on;
                         include fastcgi_params;
                         fastcgi_param SCRIPT_FILENAME /var/www/cgi/$fastcgi_script_name;
