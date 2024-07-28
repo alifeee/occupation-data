@@ -19,7 +19,6 @@ LOCATION = qs.get('r', [""])[0]
 
 df = pandas.read_csv(CSVFILE)
 df.set_index('Industry (current) (88 categories)', inplace=True)
-df.head()
 
 if LOCATION not in set(df["Lower Tier Local Authorities"]):
   # print("HTTP/1.0 400 Bad Request")
@@ -40,7 +39,6 @@ DNA_number = localdf["Observation"]["Does not apply"]
 # drop DOES NOT APPLY
 localdf = localdf.drop("Does not apply")
 total_applies = localdf["Observation"].sum()
-localdf.head()
 
 SOME_THRESHOLD = total_applies / 100
 
@@ -52,7 +50,6 @@ def combine_other(row):
 localdf.loc[:, 'combined_label'] = localdf.apply(combine_other, axis=1)
 
 pdf = localdf.groupby('combined_label').sum(numeric_only=True)
-pdf.tail()
 
 prop_cycle = plt.rcParams['axes.prop_cycle']
 colours = list(matplotlib.colors.cnames.items())
