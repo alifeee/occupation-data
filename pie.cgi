@@ -96,6 +96,16 @@ axo1.pie(
     startangle=-60,
     radius=1,
 )
+txt = ax.text(
+  0.5,
+  0.01,
+  "see full list",
+  ha="center",
+  url=f'./list.cgi?r={LOCATION}',
+  color="blue",
+  transform=ax.transAxes,
+)
+txt.set_bbox(dict(boxstyle="square", ec=(1., 0.5, 0.5),alpha=0.1,url=txt.get_url()))
 
 ratio = DNA_number / total
 ax2.pie(
@@ -111,7 +121,7 @@ ax2.set_title(f'Total \"Does not apply\": {DNA_number:,} people')
 axo1.set_title(f'Total in "Other" category: {other1total:,}')
 plt.suptitle(f"Total with data: {total:,} people")
 
-plt.figtext(
+txt = plt.figtext(
   0.5,
   0.01,
   "https://www.ons.gov.uk/datasets/TS060/editions/2021/versions/1",
@@ -120,6 +130,7 @@ plt.figtext(
   url='https://www.ons.gov.uk/datasets/TS060/editions/2021/versions/1',
   color="blue",
 )
+txt.set_bbox(dict(boxstyle="square", ec=(1., 0.5, 0.5),alpha=0.1,url=txt.get_url()))
 
 buf = io.StringIO()
 
