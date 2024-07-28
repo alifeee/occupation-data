@@ -26,7 +26,7 @@ if LOCATION not in set(df["Lower Tier Local Authorities"]):
   print("Status:400")
   print()
   print(f"<{LOCATION}> is not in the list of locations.")
-  print("Select location with query string, e.g., /occupation-data/region.cgi?r=Sheffield")
+  print("Select location with query string, e.g., /occupation-data/pie.cgi?r=Sheffield")
   print("Please see:")
   print("https://geoportal.statistics.gov.uk/documents/d1fab2d9fb0a4576a7e08f89ac7e0b72/about")
   print("Accepted locations follow:")
@@ -46,7 +46,7 @@ SOME_THRESHOLD = total_applies / 100
 
 def combine_other(row):
     if row["Observation"] < SOME_THRESHOLD:
-        return 'Other (<1%)'
+        return 'Other'
     return row.name
 
 localdf.loc[:, 'combined_label'] = localdf.apply(combine_other, axis=1)
@@ -77,10 +77,10 @@ for i in pdf["Industry (current) (88 categories) Code"]:
 
 ax.pie(
     pdf["Observation"],
-    labels=[f"{ind} - {pdf['Observation'][ind]}" for ind in pdf.index],
+    labels=[f"{ind if ind != 'Other' else 'Other (<1%)'} - {pdf['Observation'][ind]:,}" for ind in pdf.index],
     autopct='%.1f%%',
     colors=obscolours,
-    explode=[0.05 if b == "Other (<1%)" else 0 for b in pdf.index],
+    explode=[0.05 if b == "Other" else 0 for b in pdf.index],
     pctdistance=0.8,
     labeldistance=1.05,
     startangle=-60,
@@ -98,7 +98,7 @@ ax2.pie(
 )
 
 ax.set_title(f"Industry and Occupation data for {LOCATION}\nFrom Census 2021 Data")
-ax2.set_title(f"Total does not apply: {DNA_number} people")
+ax2.set_title(f'Total \"Does not apply\": {DNA_number} people')
 plt.suptitle(f"Total with data: {total_applies} people")
 
 plt.figtext(
