@@ -2,7 +2,9 @@
 
 Plotting Industry and occupation data from the ONS 2021 census.
 
-See example on <http://server.alifeee.co.uk/occupation-data/region.cgi?r=Sheffield> or in [`plot.ipynb`](./plot.ipynb)
+See example on <http://server.alifeee.co.uk/occupation-data/> or in [`plot.ipynb`](./plot.ipynb)
+
+![screenshot of pie chart showing occupation data for Sheffield](./images/pie.png)
 
 Dataset: <https://www.ons.gov.uk/datasets/TS060/editions/2021/versions/1>
 
@@ -44,6 +46,7 @@ Add the following to nginx config
 
 ```nginx
                 location /occupation-data/ {
+			fastcgi_index index.cgi;
                         fastcgi_intercept_errors on;
                         include fastcgi_params;
                         fastcgi_param SCRIPT_FILENAME /var/www/cgi/$fastcgi_script_name;
