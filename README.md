@@ -1,3 +1,5 @@
+> [!CAUTION]
+> MOVED! see <https://git.alifeee.net/occupation-data/about/>
 # Occupation data
 
 Plotting Industry and occupation data from the ONS 2021 census.
